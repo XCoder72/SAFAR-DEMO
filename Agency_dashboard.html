@@ -572,7 +572,7 @@
     function openAgencyEdit(){ const ta = read(CURRENT_AGENCY, {}); document.getElementById('agName').value = ta.name; document.getElementById('agEmail').value = ta.email; document.getElementById('agPhone').value = ta.phone; document.getElementById('agAddress').value = ta.address; openModal('agencyModal'); }
     function submitAgencyEditForm(e){ e.preventDefault(); let ta = read(CURRENT_AGENCY, {}); ta.name = document.getElementById('agName').value; ta.email = document.getElementById('agEmail').value; ta.phone = document.getElementById('agPhone').value; ta.address = document.getElementById('agAddress').value; write(CURRENT_AGENCY, ta); const agencies = read(AGENCIES, {}); if(ta.id) agencies[ta.id] = ta; write(AGENCIES, agencies); closeModal(); renderAgencyInfo(); }
     function openVehicleLiveById(vnum){ window.open(`vehicle_maps.html?vnum=${encodeURIComponent(vnum)}`, '_blank'); }
-    function logoutAgency(){ localStorage.removeItem(CURRENT_AGENCY); window.location = 'Agency.html'; }
+    function logoutAgency(){ localStorage.removeItem(CURRENT_AGENCY); window.location = 'agency.html'; }
     document.getElementById('modalBack').addEventListener('click', (e)=>{ if(e.target.id === 'modalBack') closeModal(); });
 
     init();
