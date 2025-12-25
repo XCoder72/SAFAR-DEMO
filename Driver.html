@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Driver Login</title>
+  
+  <link rel="stylesheet" href="assets/style.css">
+  <script src="assets/app.js"></script>
+  
+  <style>
+    /* --- CUSTOM DRIVER STYLES --- */
+    
+    /* Green Accent for Drivers */
+    .tab-btn.active {
+        background: rgba(59, 130, 246, 0.8); /* Neon Blue */
+        color: white;
+        box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+    }
+
+    /* Tab Layout */
+    .tab-group {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 25px;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 5px;
+        border-radius: 12px;
+    }
+
+    .tab-btn {
+        flex: 1;
+        background: transparent;
+        border: none;
+        color: rgba(255, 255, 255, 0.6);
+        padding: 10px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+
+    /* Form Layout Fixes */
+    .form-group {
+        margin-bottom: 15px;
+        text-align: left;
+    }
+
+    label {
+        display: block;      
+        color: #e2e8f0;      
+        font-size: 0.9rem;
+        margin-bottom: 8px;  
+        font-weight: 500;
+    }
+
+    /* Updated to include SELECT (Dropdown) */
+    input , select {
+        width: 100%;
+        padding: 12px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: rgb(255, 255, 255);
+        color: rgb(0, 0, 0);
+        outline: none;
+        font-family: inherit;
+        appearance: none; /* Removes default arrow in some browsers for cleaner look */
+    }
+
+    input:focus, select:focus {
+        background-color: #ffffff;
+        
+        /* This adds the Tick Icon */
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2310b981'%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 4px center; /* Position on the right */
+        background-size: 20px; /* Size of the tick */
+    }
+
+    /* Radio Button Styling */
+    .radio-group {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+    .radio-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        background: rgba(255,255,255,0.1);
+        padding: 10px;
+        border-radius: 8px;
+        flex: 1;
+        justify-content: center;
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+    .radio-label:hover {
+        background: rgba(255,255,255,0.2);
+    }
+    input[type="radio"] {
+        width: auto; 
+        margin: 0;
+    }
+
+  </style>
+
+  <style>
+    /* Force the widget to sit on top of everything */
+    #google_translate_element {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        z-index: 9999; /* Very high Z-index */
+    }
+    
+    /* Make the text WHITE so it is visible on dark backgrounds */
+    .goog-te-gadget-simple {
+        background-color: rgba(0, 0, 0, 0.5) !important; /* Dark semi-transparent background */
+        border: 1px solid rgba(255, 255, 255, 0.5) !important;
+        padding: 5px 10px !important;
+        border-radius: 4px !important;
+        color: white !important;
+    }
+    
+    .goog-te-gadget-simple span {
+        color: white !important;
+    }
+
+    /* Hide the Google Icon to make it smaller */
+    .goog-te-gadget-icon {
+        display: none !important;
+    }
+  </style>
+  
+</head>
+
+<body>
+
+  <div id="google_translate_element"></div>
+
+  <script type="text/javascript">
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement({
+        pageLanguage: 'en',
+        includedLanguages: 'en,hi,mr,gu,pa,bn,ta,te', 
+        layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+        autoDisplay: false
+      }, 'google_translate_element');
+    }
+  </script>
+  
+  <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+  <div class="glass-container" style="max-width: 500px;">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div style="text-align: left;">
+            <h1 style="font-size: 1.9rem; margin: 0;">Driver</h1>
+            <p class="subtitle" style="margin: 0; font-size: 0.8rem;"><h4>Manage your rides & earnings</h4></p>
+        </div>
+        <button onclick="window.location='homepage.html'" style="background: rgba(255,255,255,0.1); border: none; color: white; padding: 8px 15px; border-radius: 8px; cursor: pointer;">
+           <h4>Home</h4>
+        </button>
+    </div>
+
+    <div class="tab-group">
+      <button id="tabSignIn" class="tab-btn active">Sign In</button>
+      <button id="tabSignUp" class="tab-btn">Sign Up</button>
+    </div>
+
+    <div id="paneSignIn">
+      <div class="form-group">
+          <label>Driver Unique ID</label>
+          <input id="di_uid" placeholder="Enter your Driver ID">
+      </div>
+      
+      <div class="form-group">
+          <label for="di_pwd">Password</label>
+          <input id="di_pwd" type="password" placeholder="Enter password">
+      </div>
+
+      <button class="btn btn-primary" type="button" id="btnDriverSignIn" style="margin-top: 10px; width: 100%; text-align: center;">
+        Login
+      </button>
+    </div>
+
+    <div id="paneSignUp" style="display:none">
+      
+      <div class="form-group">
+          <label for="ds_name">Full Name</label>
+          <input id="ds_name" placeholder="Driver Name">
+      </div>
+
+      <label>Driver Type</label>
+      <div class="radio-group">
+          <label class="radio-label">
+              <input type="radio" name="driver_type" value="independent" checked onchange="toggleAgencyInput()"> 
+              Owner-driver
+          </label>
+          <label class="radio-label">
+              <input type="radio" name="driver_type" value="agency" onchange="toggleAgencyInput()"> 
+              Agency Driver
+          </label>
+      </div>
+
+      <div class="form-group" id="agency_input_group" style="display:none;">
+          <label for="ds_agency">Travel Agency Name</label>
+          <input id="ds_agency" placeholder="e.g. Gwalior Travels">
+      </div>
+
+      <div class="form-group">
+          <label for="ds_vehicle">Vehicle Type</label>
+          <select id="ds_vehicle">
+              <option value="Taxi">Taxi / Cab</option>
+              <option value="Auto">Auto Rickshaw</option>
+              <option value="Bus">Bus</option>
+              <option value="Van">Van / Shuttle</option>
+          </select>
+      </div>
+
+      <div class="form-group">
+          <label for="ds_email">Email</label>
+          <input id="ds_email" placeholder="you@example.com">
+      </div>
+
+      <div class="form-group">
+          <label for="ds_contact">Contact No.</label>
+          <input id="ds_contact" placeholder="+91 9XXXXXXXXX">
+      </div>
+
+      <div class="form-group">
+          <label for="ds_address">Address / City</label>
+          <input id="ds_address" placeholder="City">
+      </div>
+
+      <div class="form-group">
+          <label for="ds_uid">Create Unique ID</label>
+          <input id="ds_uid" placeholder="Create Driver ID">
+      </div>
+
+      <div class="form-group">
+          <label for="ds_pwd">Password</label>
+          <input id="ds_pwd" type="password" placeholder="Create password">
+      </div>
+
+      <button class="btn btn-primary" type="button" id="btnDriverSignUp" style="margin-top: 10px; width: 100%; text-align: center;">
+        Register as Driver
+      </button>
+    </div>
+
+  </div>
+
+  <script>
+    // --- Simple localStorage helper ---
+    function getStore(k){ try { return JSON.parse(localStorage.getItem(k)||'null') } catch(e){ return null } }
+    function setStore(k,v){ localStorage.setItem(k, JSON.stringify(v)) }
+
+    // init storage buckets
+    if(!getStore('ss_drivers')) setStore('ss_drivers', {});
+
+    // tab logic
+    const tabs = {
+      signIn: document.getElementById('tabSignIn'),
+      signUp: document.getElementById('tabSignUp'),
+    }
+    const panes = {
+      signIn: document.getElementById('paneSignIn'),
+      signUp: document.getElementById('paneSignUp'),
+    }
+
+    function setActive(tab){
+      Object.values(tabs).forEach(b => b.classList.remove('active'));
+      tabs[tab].classList.add('active');
+      Object.values(panes).forEach(p => p.style.display = 'none');
+      panes[tab].style.display = 'block';
+    }
+
+    tabs.signIn.addEventListener('click', ()=> setActive('signIn'));
+    tabs.signUp.addEventListener('click', ()=> setActive('signUp'));
+
+    // --- Toggle Agency Input ---
+    function toggleAgencyInput() {
+        const isAgency = document.querySelector('input[name="driver_type"]:checked').value === 'agency';
+        const inputDiv = document.getElementById('agency_input_group');
+        inputDiv.style.display = isAgency ? 'block' : 'none';
+    }
+
+    // --- Driver Sign Up ---
+    document.getElementById('btnDriverSignUp').addEventListener('click', ()=>{
+      const name = document.getElementById('ds_name').value.trim();
+      const email = document.getElementById('ds_email').value.trim();
+      const contact = document.getElementById('ds_contact').value.trim();
+      const address = document.getElementById('ds_address').value.trim();
+      const uid = document.getElementById('ds_uid').value.trim();
+      const pwd = document.getElementById('ds_pwd').value;
+      const vehicle = document.getElementById('ds_vehicle').value; // Get Vehicle Type
+
+      // Handle Agency Logic
+      const isAgency = document.querySelector('input[name="driver_type"]:checked').value === 'agency';
+      let agencyName = "Owner-driver"; // Default for independent drivers 
+      
+      if (isAgency) {
+          agencyName = document.getElementById('ds_agency').value.trim();
+          if (!agencyName) { alert('Please enter Travel Agency Name'); return; }
+      }
+
+      if(!name || !uid || !pwd){ alert('Please enter Name, ID, and Password'); return; }
+      
+      const drivers = getStore('ss_drivers') || {};
+      if(drivers[uid]){ alert('Driver ID already exists. Choose another.'); return; }
+      
+      // Save data including the Agency Name and Vehicle Type
+      drivers[uid] = { 
+          name, 
+          email, 
+          contact, 
+          address, 
+          uid, 
+          pwd, 
+          agency: agencyName,
+          vehicleType: vehicle 
+      };
+      setStore('ss_drivers', drivers);
+      
+      setStore('ss_current_driver', drivers[uid]);
+      window.location = 'driver_dashboard.html';
+    });
+
+    // --- Driver Sign In ---
+    document.getElementById('btnDriverSignIn').addEventListener('click', ()=>{
+      const uid = document.getElementById('di_uid').value.trim();
+      const pwd = document.getElementById('di_pwd').value;
+      
+      if(!uid || !pwd){ alert('Enter Driver ID and Password'); return; }
+      
+      const drivers = getStore('ss_drivers') || {};
+      if(!drivers[uid] || drivers[uid].pwd !== pwd){ alert('Invalid credentials'); return; }
+      
+      setStore('ss_current_driver', drivers[uid]);
+      window.location = 'driver_dashboard.html';
+    });
+
+    // on load, ensure signIn active
+    setActive('signIn');
+  </script>
+
+</body>
+</html>

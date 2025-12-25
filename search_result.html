@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Search Results - SmartSafar</title>
+  
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+  <style>
+    /* --- SEARCH PAGE SPECIFIC STYLES --- */
+    
+    .results-container {
+        max-width: 900px !important;
+        padding: 30px !important;
+        text-align: left !important;
+    }
+
+    /* Category Filter Tabs */
+    .category-scroll {
+        display: flex;
+        gap: 15px;
+        overflow-x: auto;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+        scrollbar-width: none; /* Hide scrollbar */
+    }
+    .category-card {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 15px 25px;
+        min-width: 100px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+    }
+    .category-card:hover, .category-card.active {
+        background: rgba(59, 130, 246, 0.3); /* Neon Blue Highlight */
+        border-color: #3b82f6;
+        transform: translateY(-3px);
+    }
+    .cat-icon { font-size: 1.5rem; margin-bottom: 5px; color: #fff; }
+
+    /* Route Cards */
+    .route-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: transform 0.2s, background 0.2s;
+    }
+    .route-card:hover {
+        background: rgba(255, 255, 255, 0.08);
+        transform: scale(1.01);
+    }
+
+    /* Route Details */
+    .route-left { flex: 1; }
+    .route-title { font-size: 1.1rem; font-weight: 700; color: white; margin-bottom: 5px; }
+    .route-meta { font-size: 0.85rem; color: #cbd5e1; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; }
+    
+    /* Price Section */
+    .price-box { text-align: right; min-width: 120px; }
+    .price-tag { font-size: 1.4rem; font-weight: 700; color: #3b82f6; display: block; margin-bottom: 5px; }
+    
+    .btn-book {
+        background: linear-gradient(135deg, #00c6ff, #0072ff);
+        border: none;
+        color: white;
+        padding: 8px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(0, 198, 255, 0.3);
+    }
+    .btn-book:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 198, 255, 0.5); }
+
+    /* Icons for route meta */
+    .meta-icon { opacity: 0.7; font-size: 0.8rem; }
+  </style>
+  <style>
+    /* Force the widget to sit on top of everything */
+    #google_translate_element {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        z-index: 9999; /* Very high Z-index */
+    }
+    
+    /* Make the text WHITE so it is visible on dark backgrounds */
+    .goog-te-gadget-simple {
+        background-color: rgba(0, 0, 0, 0.5) !important; /* Dark semi-transparent background */
+        border: 1px solid rgba(255, 255, 255, 0.5) !important;
+        padding: 5px 10px !important;
+        border-radius: 4px !important;
+        color: white !important;
+    }
+    
+    .goog-te-gadget-simple span {
+        color: white !important;
+    }
+
+    /* Hide the Google Icon to make it smaller */
+    .goog-te-gadget-icon {
+        display: none !important;
+    }
+  </style>
+</head>
+
+<body>
+
+<div id="google_translate_element"></div>
+
+  <script type="text/javascript">
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement({
+        pageLanguage: 'en',
+        includedLanguages: 'en,hi,mr,gu,pa,bn,ta,te', 
+        layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+        autoDisplay: false
+      }, 'google_translate_element');
+    }
+  </script>
+  
+  <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+  <div class="glass-container results-container">
+    
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
+        <div>
+            <div style="font-size:0.8rem; color:#94a3b8; text-transform:uppercase; letter-spacing:1px;">Search Results</div>
+            <h2 style="margin:0; font-size:1.8rem;">
+                <span id="q_from" style="color:#fff">...</span> 
+                <i class="fas fa-arrow-right" style="font-size:1rem; margin:0 10px; color:#3b82f6;"></i> 
+                <span id="q_to" style="color:#fff">...</span>
+            </h2>
+        </div>
+        <button onclick="window.location='user.html'" style="background:rgba(255,255,255,0.1); border:none; color:white; padding:10px 15px; border-radius:8px; cursor:pointer;">
+            <i class="fas fa-arrow-left"></i> Back
+        </button>
+    </div>
+
+    <div class="category-scroll">
+        <div class="category-card active" onclick="filterCategory('All')">
+            <i class="fas fa-th-large cat-icon"></i>
+            <div style="font-size:0.8rem;">All</div>
+        </div>
+        <div class="category-card" onclick="filterCategory('Bus')">
+            <i class="fas fa-bus cat-icon"></i>
+            <div style="font-size:0.8rem;">Bus</div>
+        </div>
+        <div class="category-card" onclick="filterCategory('Taxi')">
+            <i class="fas fa-taxi cat-icon"></i>
+            <div style="font-size:0.8rem;">Taxi</div>
+        </div>
+        <div class="category-card" onclick="filterCategory('Auto')">
+            
+            <i class="fas fa-shuttle-van cat-icon"></i> <div style="font-size:0.8rem;">Auto</div>
+        </div>
+        <div class="category-card" onclick="filterCategory('Shuttle')">
+            <i class="fas fa-van-shuttle cat-icon"></i>
+            <div style="font-size:0.8rem;">Shuttle</div>
+        </div>
+    </div>
+
+    <div id="resultsList">
+        <p style="text-align:center; opacity:0.6;">Loading available transport...</p>
+    </div>
+
+  </div>
+
+<script>
+    /* --- HELPERS --- */
+    function getStore(k){ try{ return JSON.parse(localStorage.getItem(k)||'null') }catch(e){return null} }
+    function setStore(k,v){ localStorage.setItem(k, JSON.stringify(v)) }
+    function go(url){ window.location = url }
+
+    // --- SEED DATA (Force Update Mode) ---
+    function seedRoutes(){
+      
+      // 1. FORCE CLEAR OLD DATA (This fixes your issue)
+      // Remove this line later if you want data to persist between reloads
+      localStorage.removeItem('ss_routes'); 
+
+      const existing = getStore('ss_routes');
+      
+      if (!existing || existing.length === 0) {
+          console.log("Seeding new data...");
+          const now = new Date();
+          function timePlus(minutes){ const d = new Date(now.getTime() + minutes*60000); return d.toTimeString().slice(0,5) }
+          
+          const demo = [
+            { id: 'R1', name: 'City BUS', category: 'Bus', type: 'AC Bus', from: 'Gwalior', to: 'Jhansi', dep_time: timePlus(60), arr_time: timePlus(180), duration_min: 120, price: 120, icon: 'fa-bus' },
+            { id: 'R2', name: 'Rapid Taxi', category: 'Taxi', type: 'taxi/AC', from: 'Gwalior', to: 'Jhansi', dep_time: timePlus(90), arr_time: timePlus(210), duration_min: 120, price: 500, icon: 'fa-taxi' },
+            { id: 'R3', name: 'metha Auto', category: 'Auto', type: 'CNG Auto', from: 'Gwalior', to: 'Jhansi', dep_time: timePlus(30), arr_time: timePlus(180), duration_min: 150, price: 60, icon: 'fa-shuttle-van' },
+            { id: 'R4', name: 'patel travel', category: 'Bus', type: 'Sleeper/AC', from: 'Gwalior', to:'jhansi' , dep_time : timePlus(45) , arr_time : timePlus(300) , duration_min : 255 , price : 350 , icon : "fa-bus" },
+            { id:'R5' , name:'bharat travel' , category:'Taxi' , type:'Taxi/mini' , from:'Gwalior' , to:'jhansi' , dep_time : timePlus(20) , arr_time : timePlus(80) , duration_min : 60 , price : 220 , icon : "fa-taxi" },
+            { id:'R6' , name:'sharma auto' , category:'Auto' , type:'CNG auto' , from:'Gwalior' , to:'jhansi' , dep_time : timePlus(10) , arr_time : timePlus(100) , duration_min : 90 , price : 80 , icon : "fa-shuttle-van" },
+            { id:'R7' , name:'express bus' , category:'Bus' , type:'Non-AC bus' , from:'Gwalior' , to:'jhansi' , dep_time : timePlus(120) , arr_time : timePlus(300) , duration_min : 180 , price : 150 , icon : "fa-bus" },
+            { id:'R8' , name:'city taxi' , category:'Taxi' , type:'Taxi/AC' , from:'Gwalior' , to:'jhansi' , dep_time : timePlus(60) , arr_time : timePlus(200) , duration_min : 140 , price : 600 , icon : "fa-taxi" },
+            { id:'R9' , name:'kumar auto' , category:'Auto' , type:'CNG auto' , from:'Gwalior' , to:'jhansi' , dep_time : timePlus(30) , arr_time : timePlus(180) , duration_min : 150 , price : 90 , icon : "fa-shuttle-van" }
+          ];
+          setStore('ss_routes', demo);
+      }
+    }
+    seedRoutes();
+
+    // --- SEARCH LOGIC ---
+    const params = new URLSearchParams(window.location.search);
+    const qfrom = (params.get('from') || 'Any').trim();
+    const qto = (params.get('to') || 'Any').trim();
+    document.getElementById('q_from').textContent = qfrom;
+    document.getElementById('q_to').textContent = qto;
+
+    let allMatches = []; 
+
+    function loadResults() {
+        const routes = getStore('ss_routes') || [];
+        allMatches = routes.filter(r => {
+            const rf = (r.from||'').toLowerCase();
+            const rt = (r.to||'').toLowerCase();
+            const qf = qfrom.toLowerCase();
+            const qt = qto.toLowerCase();
+            const fMatch = qf === 'any' || !qfrom || rf.includes(qf) || qf.includes(rf);
+            const tMatch = qt === 'any' || !qto || rt.includes(qt) || qt.includes(rt);
+            return fMatch && tMatch;
+        });
+        
+        if(allMatches.length === 0) allMatches = routes; 
+        
+        // Render All initially
+        renderList(allMatches);
+    }
+
+    // --- RENDER & FILTER ---
+    function renderList(list) {
+        const out = document.getElementById('resultsList');
+        out.innerHTML = '';
+
+        if(!list || list.length === 0){
+             out.innerHTML = '<div style="text-align:center; padding:30px; opacity:0.6;">No vehicles found in this category.</div>';
+             return;
+        }
+
+        list.forEach(r => {
+            const div = document.createElement('div');
+            div.className = 'route-card';
+            const iconClass = r.icon || 'fa-car';
+
+            div.innerHTML = `
+                <div class="route-left">
+                    <div class="route-title"><i class="fas ${iconClass}" style="margin-right:8px; color:#3b82f6;"></i> ${r.name}</div>
+                    <div class="route-meta">
+                        <span style="background:rgba(255,255,255,0.1); padding:2px 8px; border-radius:4px; font-size:0.75rem;">${r.type}</span>
+                    </div>
+                    <div class="route-meta" style="margin-top:8px;">
+                        <span><i class="fas fa-clock meta-icon"></i> ${r.dep_time} - ${r.arr_time}</span>
+                        <span><i class="fas fa-hourglass-half meta-icon"></i> ${Math.floor(r.duration_min/60)}h ${r.duration_min%60}m</span>
+                    </div>
+                </div>
+                <div class="price-box">
+                    <span class="price-tag">₹${r.price}</span>
+                    <button class="btn-book" onclick='confirmBook("${r.id}")'>Book Now</button>
+                </div>
+            `;
+            out.appendChild(div);
+        });
+    }
+
+    // UI: Filter by Category
+    window.filterCategory = function(cat) {
+        // 1. Visual Update
+        document.querySelectorAll('.category-card').forEach(c => c.classList.remove('active'));
+        if(event && event.currentTarget) event.currentTarget.classList.add('active');
+
+        // 2. Filter Logic
+        if(cat === 'All') {
+            renderList(allMatches);
+        } else {
+            const filtered = allMatches.filter(r => {
+                // Robust check: matches Category exactly OR Type contains the word
+                return (r.category === cat) || (r.type && r.type.includes(cat)); 
+            });
+            renderList(filtered);
+        }
+    }
+
+    // --- BOOKING LOGIC ---
+    window.confirmBook = function(routeId){
+      const route = (getStore('ss_routes') || []).find(x => x.id === routeId);
+      if(!route) return;
+      
+      if(!confirm(`Confirm Booking?\n\n${route.name} (${route.type})\nPrice: ₹${route.price}`)) return;
+      
+      const user = getStore('ss_current');
+      if(!user){
+        alert('Please login first');
+        go('passenger.html');
+        return;
+      }
+
+      const booking = {
+        id: 'B' + Date.now(),
+        uid: user.uid,
+        userName: user.name || user.uid,
+        routeId: routeId,
+        routeName: route.name,
+        type: route.type,
+        from: qfrom === 'Any' ? route.from : qfrom,
+        to: qto === 'Any' ? route.to : qto,
+        dep_time: route.dep_time,
+        arr_time: route.arr_time,
+        price: route.price,
+        ts: new Date().toISOString()
+      };
+
+      const bookings = getStore('ss_bookings') || [];
+      bookings.push(booking);
+      setStore('ss_bookings', bookings);
+      
+      alert('Booking Successful!');
+      go('user.html');
+    }
+
+    // Init
+    loadResults();
+  </script>
+
+</body>
+</html>

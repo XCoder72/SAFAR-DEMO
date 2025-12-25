@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Passenger Login</title>
+  
+  <link rel="stylesheet" href="assets/style.css">
+  <script src="assets/app.js"></script>
+  
+  <style>
+    /* Custom Tab Styles */
+    .tab-group {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 25px;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 5px;
+        border-radius: 12px;
+    }
+
+    .tab-btn {
+        flex: 1;
+        background: transparent;
+        border: none;
+        color: rgba(255, 255, 255, 0.6);
+        padding: 10px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+
+    .tab-btn.active {
+        background: rgba(59, 130, 246, 0.8); /* Neon Blue */
+        color: white;
+        box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+    }
+
+    /* --- FORM LAYOUT FIXES --- */
+    .form-group {
+        margin-bottom: 15px; /* Spacing between input blocks */
+        text-align: left;    /* Aligns labels to the left */
+    }
+
+    label {
+        display: block;      /* Forces label to its own line */
+        color: #e2e8f0;      /* Light white text */
+        font-size: 0.9rem;
+        margin-bottom: 8px;  /* Space between label and input */
+        font-weight: 500;
+    }
+
+    input {
+        width: 100%;
+        padding: 12px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: rgb(255, 255, 255);
+        color: rgb(0, 0, 0);
+        outline: none;
+        font-family: inherit;
+    }
+
+    input:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
+    }
+
+    .small-link {
+        display: block;
+        margin-top: 15px;
+        font-size: 0.85rem;
+        color: #94a3b8;
+        text-align: center;
+    }
+  </style>
+  <style>
+    /* Force the widget to sit on top of everything */
+    #google_translate_element {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        z-index: 9999; /* Very high Z-index */
+    }
+    
+    /* Make the text WHITE so it is visible on dark backgrounds */
+    .goog-te-gadget-simple {
+        background-color: rgba(0, 0, 0, 0.5) !important; /* Dark semi-transparent background */
+        border: 1px solid rgba(255, 255, 255, 0.5) !important;
+        padding: 5px 10px !important;
+        border-radius: 4px !important;
+        color: white !important;
+    }
+    
+    .goog-te-gadget-simple span {
+        color: white !important;
+    }
+
+    /* Hide the Google Icon to make it smaller */
+    .goog-te-gadget-icon {
+        display: none !important;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="google_translate_element"></div>
+
+  <script type="text/javascript">
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement({
+        pageLanguage: 'en',
+        includedLanguages: 'en,hi,mr,gu,pa,bn,ta,te', 
+        layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+        autoDisplay: false
+      }, 'google_translate_element');
+    }
+  </script>
+  
+  <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+  <div class="glass-container" style="max-width: 500px;"> 
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div style="text-align: left;">
+            <h1 style="font-size: 1.9rem; margin: 0;">Passenger</h1>
+            <p class="subtitle" style="margin: 0; font-size: 0.8rem;"><h4>Plan your journey</h4></p>
+        </div>
+        <button onclick="window.location='homepage.html'" style="background: rgba(255,255,255,0.1); border: none; color: white; padding: 8px 15px; border-radius: 8px; cursor: pointer;">
+           <h4>Home</h4>
+        </button>
+    </div>
+
+    <div class="tab-group">
+      <button id="tabSignIn" class="tab-btn active">Sign In</button>
+      <button id="tabSignUp" class="tab-btn">Sign Up</button>
+      <button id="tabGuest" class="tab-btn">Guest</button>
+    </div>
+
+    <div id="paneSignIn">
+      <div class="form-group">
+          <label for="si_uid">User Unique ID</label>
+          <input id="si_uid" placeholder="Enter your ID">
+      </div>
+      
+      <div class="form-group">
+          <label for="si_pwd">Password</label>
+          <input id="si_pwd" type="password" placeholder="Enter password">
+      </div>
+
+      <button class="btn btn-primary" type="button" id="btnSignIn" style="margin-top: 10px;">
+        Login
+      </button>
+      
+      <p class="small-link">Or try <a href="#" id="toGuestFromSignIn" style="color: #60a5fa;">Guest Login</a></p>
+    </div>
+
+    <div id="paneSignUp" style="display:none">
+      <div class="form-group">
+          <label for="su_name">Full Name</label>
+          <input id="su_name" placeholder="John Doe">
+      </div>
+
+      <div class="form-group">
+          <label for="su_email">Email</label>
+          <input id="su_email" placeholder="you@example.com">
+      </div>
+
+      <div class="form-group">
+          <label for="su_contact">Contact No.</label>
+          <input id="su_contact" placeholder="+91 9XXXXXXXXX">
+      </div>
+
+      <div class="form-group">
+          <label for="su_address">Address</label>
+          <input id="su_address" placeholder="City / Area">
+      </div>
+
+      <div class="form-group">
+          <label for="su_uid">Unique ID</label>
+          <input id="su_uid" placeholder="Create a User ID">
+      </div>
+
+      <div class="form-group">
+          <label for="su_pwd">Password</label>
+          <input id="su_pwd" type="password" placeholder="Create a password">
+      </div>
+
+      <button class="btn btn-primary" type="button" id="btnSignUp" style="margin-top: 10px;">
+        Create Account
+      </button>
+    </div>
+
+    <div id="paneGuest" style="display:none">
+      <div class="form-group">
+          <label for="g_name">Guest Name</label>
+          <input id="g_name" placeholder="Enter Guest Name">
+      </div>
+      
+      <button class="btn btn-primary" type="button" id="btnGuest" style="margin-top: 10px;">
+        Continue as Guest
+      </button>
+    </div>
+
+  </div>
+
+  <script>
+    // --- Simple localStorage helper ---
+    function getStore(k){ try { return JSON.parse(localStorage.getItem(k)||'null') } catch(e){ return null } }
+    function setStore(k,v){ localStorage.setItem(k, JSON.stringify(v)) }
+
+    // init storage buckets
+    if(!getStore('ss_users')) setStore('ss_users', {});
+
+    // tab logic
+    const tabs = {
+      signIn: document.getElementById('tabSignIn'),
+      signUp: document.getElementById('tabSignUp'),
+      guest: document.getElementById('tabGuest')
+    }
+    const panes = {
+      signIn: document.getElementById('paneSignIn'),
+      signUp: document.getElementById('paneSignUp'),
+      guest: document.getElementById('paneGuest')
+    }
+
+    function setActive(tab){
+      Object.values(tabs).forEach(b => b.classList.remove('active'));
+      tabs[tab].classList.add('active');
+      Object.values(panes).forEach(p => p.style.display = 'none');
+      panes[tab].style.display = 'block';
+    }
+
+    tabs.signIn.addEventListener('click', ()=> setActive('signIn'));
+    tabs.signUp.addEventListener('click', ()=> setActive('signUp'));
+    tabs.guest.addEventListener('click', ()=> setActive('guest'));
+
+    // Sign Up user
+    document.getElementById('btnSignUp').addEventListener('click', ()=>{
+      const name = document.getElementById('su_name').value.trim();
+      const email = document.getElementById('su_email').value.trim();
+      const contact = document.getElementById('su_contact').value.trim();
+      const uid = document.getElementById('su_uid').value.trim();
+      const pwd = document.getElementById('su_pwd').value;
+      
+      if(!name || !uid || !pwd){ alert('Please enter Name, User ID and Password'); return; }
+      
+      const users = getStore('ss_users') || {};
+      if(users[uid]){ alert('User ID already exists! Please choose another.'); return; }
+      
+      users[uid] = { name, email, contact, uid, pwd };
+      setStore('ss_users', users);
+      setStore('ss_current', users[uid]);
+      window.location = 'user.html';
+    });
+
+    // Sign In user
+    document.getElementById('btnSignIn').addEventListener('click', ()=>{
+      const uid = document.getElementById('si_uid').value.trim();
+      const pwd = document.getElementById('si_pwd').value;
+      
+      if(!uid || !pwd){ alert('Enter User ID and Password'); return; }
+      
+      const users = getStore('ss_users') || {};
+      if(!users[uid] || users[uid].pwd !== pwd){ alert('Invalid credentials'); return; }
+      
+      setStore('ss_current', users[uid]);
+      window.location = 'user.html';
+    });
+
+    // Guest Login
+    document.getElementById('btnGuest').addEventListener('click', ()=>{
+      const name = document.getElementById('g_name').value.trim() || 'Guest';
+      const guestId = 'guest_' + Date.now();
+      const guest = { name, uid:guestId, guest:true };
+      setStore('ss_current', guest);
+      window.location = 'user.html';
+    });
+
+    // small helper - link from sign-in pane to guest
+    document.getElementById('toGuestFromSignIn').addEventListener('click', (e)=>{
+      e.preventDefault();
+      setActive('guest');
+    });
+
+    // on load, ensure signIn active
+    setActive('signIn');
+  </script>
+
+</body>
+</html>

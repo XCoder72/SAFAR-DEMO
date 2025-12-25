@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Agency Login - SmartSafar</title>
+  
+  <link rel="stylesheet" href="assets/style.css">
+  <script src="assets/app.js"></script>
+  
+  <style>
+    /* --- CUSTOM AGENCY STYLES --- */
+    
+    /* Orange Accent for Agencies */
+    .tab-btn.active {
+        background: linear-gradient(135deg, #f59e0b, #d97706); /* Amber/Orange */
+        color: white;
+        box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+    }
+
+    /* Primary Button override for Agency */
+    .btn-agency {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        border: none;
+        color: white;
+        padding: 12px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s;
+        width: 100%;
+    }
+    .btn-agency:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0 15px rgba(245, 158, 11, 0.5);
+    }
+
+    /* Focus color for inputs */
+    input:focus {
+        border-color: #f59e0b;
+        box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+    }
+
+    /* Tab Layout */
+    .tab-group {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 25px;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 5px;
+        border-radius: 12px;
+    }
+
+    .tab-btn {
+        flex: 1;
+        background: transparent;
+        border: none;
+        color: rgba(255, 255, 255, 0.6);
+        padding: 10px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+
+    /* Form Layout Fixes */
+    .form-group {
+        margin-bottom: 15px;
+        text-align: left;
+    }
+
+    label {
+        display: block;      
+        color: #e2e8f0;      
+        font-size: 0.9rem;
+        margin-bottom: 8px;  
+        font-weight: 500;
+    }
+
+    input {
+        width: 100%;
+        padding: 12px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: rgb(255, 255, 255);
+        color: rgb(0, 0, 0);
+        outline: none;
+        font-family: inherit;
+    }
+  </style>
+
+  <style>
+    /* Force the widget to sit on top of everything */
+    #google_translate_element {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        z-index: 9999; /* Very high Z-index */
+    }
+    
+    /* Make the text WHITE so it is visible on dark backgrounds */
+    .goog-te-gadget-simple {
+        background-color: rgba(0, 0, 0, 0.5) !important; /* Dark semi-transparent background */
+        border: 1px solid rgba(255, 255, 255, 0.5) !important;
+        padding: 5px 10px !important;
+        border-radius: 4px !important;
+        color: white !important;
+    }
+    
+    .goog-te-gadget-simple span {
+        color: white !important;
+    }
+
+    /* Hide the Google Icon to make it smaller */
+    .goog-te-gadget-icon {
+        display: none !important;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="google_translate_element"></div>
+
+  <script type="text/javascript">
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement({
+        pageLanguage: 'en',
+        includedLanguages: 'en,hi,mr,gu,pa,bn,ta,te', 
+        layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+        autoDisplay: false
+      }, 'google_translate_element');
+    }
+  </script>
+  
+  <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+  <div class="glass-container" style="max-width: 500px;">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div style="text-align: left;">
+            <h1 style="font-size: 1.9rem; margin: 0;">Agency</h1>
+            <p class="subtitle" style="margin: 0; font-size: 0.8rem;"><h4>Fleet & Driver Management</h4></p>
+        </div>
+        <button onclick="window.location='homepage.html'" style="background: rgba(255,255,255,0.1); border: none; color: white; padding: 8px 15px; border-radius: 8px; cursor: pointer;">
+           <h4>Home</h4>
+        </button>
+    </div>
+
+    <div class="tab-group">
+      <button id="tabSignIn" class="tab-btn active">Sign In</button>
+      <button id="tabSignUp" class="tab-btn">Sign Up</button>
+    </div>
+
+    <div id="paneSignIn">
+      <div class="form-group">
+          <label>Agency Unique ID</label>
+          <input id="ai_uid" placeholder="Enter Agency ID">
+      </div>
+      
+      <div class="form-group">
+          <label for="ai_pwd">Password</label>
+          <input id="ai_pwd" type="password" placeholder="Enter password">
+      </div>
+
+      <button class="btn-agency" type="button" id="btnAgencySignIn" style="margin-top: 10px;">
+        Login Dashboard
+      </button>
+    </div>
+
+    <div id="paneSignUp" style="display:none">
+      
+      <div class="form-group">
+          <label for="ts_agency">Travel Agency Name</label>
+          <input id="ts_agency" placeholder="e.g. Royal Travels">
+      </div>
+
+      <div class="form-group">
+          <label for="ts">Owner Full Name</label>
+          <input id="ts" placeholder="Owner Name">
+      </div>
+
+      <div class="form-group">
+          <label for="ts_email">Email</label>
+          <input id="ts_email" placeholder="agency@example.com">
+      </div>
+
+      <div class="form-group">
+          <label for="ts_contact">Contact No.</label>
+          <input id="ts_contact" placeholder="+91 9XXXXXXXXX">
+      </div>
+
+      <div class="form-group">
+          <label for="ts_address">Office Address / City</label>
+          <input id="ts_address" placeholder="City">
+      </div>
+
+      <div class="form-group">
+          <label for="ts_uid">Create Agency ID</label>
+          <input id="ts_uid" placeholder="Unique Agency ID">
+      </div>
+
+      <div class="form-group">
+          <label for="ts_pwd">Password</label>
+          <input id="ts_pwd" type="password" placeholder="Create password">
+      </div>
+
+      <button class="btn-agency" type="button" id="btnAgencySignUp" style="margin-top: 10px;">
+        Register Agency
+      </button>
+    </div>
+
+  </div>
+
+  <script>
+    // --- Simple localStorage helper ---
+    function getStore(k){ try { return JSON.parse(localStorage.getItem(k)||'null') } catch(e){ return null } }
+    function setStore(k,v){ localStorage.setItem(k, JSON.stringify(v)) }
+
+    // init storage buckets
+    if(!getStore('ss_agencies')) setStore('ss_agencies', {});
+
+    // tab logic
+    const tabs = {
+      signIn: document.getElementById('tabSignIn'),
+      signUp: document.getElementById('tabSignUp'),
+    }
+    const panes = {
+      signIn: document.getElementById('paneSignIn'),
+      signUp: document.getElementById('paneSignUp'),
+    }
+
+    function setActive(tab){
+      Object.values(tabs).forEach(b => b.classList.remove('active'));
+      tabs[tab].classList.add('active');
+      Object.values(panes).forEach(p => p.style.display = 'none');
+      panes[tab].style.display = 'block';
+    }
+
+    tabs.signIn.addEventListener('click', ()=> setActive('signIn'));
+    tabs.signUp.addEventListener('click', ()=> setActive('signUp'));
+
+    // --- Agency Sign Up ---
+    document.getElementById('btnAgencySignUp').addEventListener('click', ()=>{
+      const name = document.getElementById('ts').value.trim();
+      const email = document.getElementById('ts_email').value.trim();
+      const contact = document.getElementById('ts_contact').value.trim();
+      const address = document.getElementById('ts_address').value.trim();
+      const uid = document.getElementById('ts_uid').value.trim();
+      const pwd = document.getElementById('ts_pwd').value;
+      const agency = document.getElementById('ts_agency').value.trim() || 'Demo Travels';
+      
+      if(!name || !uid || !pwd){ alert('Please enter Name, ID and Password'); return; }
+      
+      const agencies = getStore('ss_agencies') || {};
+      if(agencies[uid]){ alert('Agency ID already exists. Choose another.'); return; }
+      
+      agencies[uid] = { name, email, contact, address, uid, pwd, agency};
+      setStore('ss_agencies', agencies);
+      
+      // set current agency session
+      setStore('ss_current_agency', agencies[uid]);
+      // navigate to agency section
+      window.location = 'agency_dashboard.html';
+    });
+
+    // --- Agency Sign In ---
+    document.getElementById('btnAgencySignIn').addEventListener('click', ()=>{
+      const uid = document.getElementById('ai_uid').value.trim();
+      const pwd = document.getElementById('ai_pwd').value;
+      
+      if(!uid || !pwd){ alert('Enter Agency ID and Password'); return; }
+      
+      const agencies = getStore('ss_agencies') || {};
+      if(!agencies[uid] || agencies[uid].pwd !== pwd){ alert('Invalid credentials'); return; }
+      
+      setStore('ss_current_agency', agencies[uid]);
+      window.location = 'agency_dashboard.html';
+    });
+
+    // on load, ensure signIn active
+    setActive('signIn');
+  </script>
+
+</body>
+</html>

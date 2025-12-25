@@ -1,0 +1,581 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Agency Dashboard</title>
+  
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
+  <script> 
+    /* --- AUDIO SYSTEM --- */
+    const alertAudio = new Audio('assets/alert.mp3');
+    alertAudio.loop = true; // Loop sound until stopped
+
+    // Play Function
+    function playAlertSound() {
+        if (alertAudio.paused) {
+            alertAudio.currentTime = 0; 
+            const playPromise = alertAudio.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    console.log("Sound blocked: User interaction required.");
+                });
+            }
+        }
+    }
+
+    // Stop Function
+    function stopAudio() {
+        alertAudio.pause();
+        alertAudio.currentTime = 0;
+    }
+
+    // Unlock Audio on First Click
+    document.addEventListener('click', function unlockAudio() {
+        alertAudio.play().then(() => {
+            alertAudio.pause();
+            alertAudio.currentTime = 0;
+        }).catch(() => {});
+        document.removeEventListener('click', unlockAudio);
+    }, { once: true });
+  </script>
+
+  <style>
+    /* Force the widget to sit on top of everything */
+    #google_translate_element {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        z-index: 9999; /* Very high Z-index */
+    }
+    
+    /* Make the text WHITE so it is visible on dark backgrounds */
+    .goog-te-gadget-simple {
+        background-color: rgba(0, 0, 0, 0.5) !important; /* Dark semi-transparent background */
+        border: 1px solid rgba(255, 255, 255, 0.5) !important;
+        padding: 5px 10px !important;
+        border-radius: 4px !important;
+        color: white !important;
+    }
+    
+    .goog-te-gadget-simple span {
+        color: white !important;
+    }
+
+    /* Hide the Google Icon to make it smaller */
+    .goog-te-gadget-icon {
+        display: none !important;
+    }
+  </style>
+
+  <style>
+    /* --- DASHBOARD STYLES --- */
+    .dashboard-container { max-width: 1200px !important; text-align: left !important; align-items: flex-start !important; padding: 20px !important; }
+    .dashboard-grid { display: grid; grid-template-columns: 320px 1fr; gap: 25px; margin-top: 20px; }
+    @media (max-width: 900px) { .dashboard-grid { grid-template-columns: 1fr; } }
+    .glass-card { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 20px; margin-bottom: 20px; position: relative; transition: all 0.3s ease; }
+    h3 { margin-top: 0; color: white; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+    .muted-text { color: #f59e0b; font-size: 1.2rem; }
+    
+    /* Profile & Stats */
+    .agency-profile { text-align: center; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
+    .profile-icon { width: 70px; height: 70px; background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: white; margin: 0 auto 15px auto; box-shadow: 0 0 20px rgba(245, 158, 11, 0.4); }
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+    .stat-box { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; text-align: center; border: 1px solid rgba(255,255,255,0.05); }
+    .stat-num { font-size: 1.5rem; font-weight: bold; color: #fff; }
+    .stat-label { font-size: 0.75rem; color: #cbd5e1; }
+
+    /* Buttons & Tabs */
+    .btn-action { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; transition: 0.2s; }
+    .btn-action:hover { background: rgba(255,255,255,0.2); }
+    .btn-primary-agency { background: linear-gradient(135deg, #f59e0b, #d97706); border: none; color: white; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+    .btn-primary-map { background: linear-gradient(135deg, #f59e0b, #d97706); border: none; color: white; padding: 10px 100px; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .cat-tabs { display: flex; gap: 10px; margin-bottom: 15px; overflow-x: auto; }
+    .cat-tab { padding: 8px 16px; border-radius: 20px; background: rgba(255,255,255,0.05); color: #cbd5e1; cursor: pointer; font-size: 0.85rem; border: 1px solid transparent; transition: 0.3s; }
+    .cat-tab.active { background: rgba(245, 158, 11, 0.2); color: #f59e0b; border-color: #f59e0b; font-weight: bold; }
+    .list-item { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 10px; padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+    
+    /* --- MODALS --- */
+    .modal-back { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.75); z-index: 1000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(8px); animation: fadeIn 0.3s ease-out; }
+    .modal-content { background: #1e293b; width: 100%; max-width: 450px; padding: 35px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.1); color: white; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6); transform: translateY(0); animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+    .modal-content h3 { margin-top: 0; margin-bottom: 25px; font-size: 1.5rem; font-weight: 600; text-align: center; background: linear-gradient(to right, #fff, #cbd5e1); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .modal-content input, .modal-content select { width: 100%; padding: 12px 16px; margin-top: 6px; margin-bottom: 20px; background: rgba(0, 0, 0, 0.25); border: 1px solid rgba(255, 255, 255, 0.15); color: white; border-radius: 10px; font-size: 0.95rem; outline: none; transition: all 0.2s ease; }
+    .modal-content label { display: block; font-size: 0.85rem; color: #94a3b8; font-weight: 500; margin-left: 2px; }
+    .modal-content input:focus, .modal-content select:focus { border-color: #f59e0b; background: rgba(0, 0, 0, 0.5); box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.15); }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* --- ALERT EFFECTS (RED GLOW & SHAKE) --- */
+    @keyframes criticalPulse {
+        0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); border-color: rgba(239, 68, 68, 0.5); }
+        50% { box-shadow: 0 0 20px 5px rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 1); }
+        100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); border-color: rgba(239, 68, 68, 0.5); }
+    }
+    .alert-critical { animation: criticalPulse 2s infinite; border: 1px solid #ef4444 !important; background: rgba(239, 68, 68, 0.1) !important; }
+    
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+        20%, 40%, 60%, 80% { transform: translateX(5px); }
+    }
+    .shake-reminder { animation: shake 0.5s ease-in-out; }
+  </style>
+</head>
+
+<body>
+
+  <div id="google_translate_element"></div>
+
+  <script type="text/javascript">
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement({
+        pageLanguage: 'en',
+        includedLanguages: 'en,hi,mr,gu,pa,bn,ta,te', 
+        layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+        autoDisplay: false
+      }, 'google_translate_element');
+    }
+  </script>
+  
+  <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+  <div class="glass-container dashboard-container">
+    
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:15px;">
+      <div style="display:flex; gap:15px; align-items:center;">
+        <div>
+          <h2 style="margin:0; font-size:1.5rem;">Agency Dashboard</h2>
+          <div class="muted-text">Fleet & Driver Management</div>
+        </div>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <button class="btn-action" onclick="window.location='homepage.html'"><h4>Home</h4></button>
+        <button class="btn-action" style="padding:10px 15px;" onclick="logoutAgency()"><h4>Logout</h4></button>
+      </div>
+    </div>
+
+    <div class="dashboard-grid">
+      <div class="col">
+        <div class="glass-card">
+            <div class="agency-profile">
+                <div class="profile-icon"><i class="fas fa-building"></i></div>
+                <h3 id="taName" style="justify-content:center; margin-bottom:5px;">Agency Name</h3>
+                <div id="taId" class="muted-text" style="font-family:monospace;">ID: --</div>
+            </div>
+            <div style="margin-bottom:15px;">
+                <div class="muted-text"><i class="fas fa-envelope"></i> Email</div>
+                <div id="taEmail" style="color:white; margin-bottom:10px;">-</div>
+                <div class="muted-text"><i class="fas fa-map-marker-alt"></i> HQ Address</div>
+                <div id="taAddress" style="color:white;">-</div>
+            </div>
+            <button class="btn-action" style="width:100%" onclick="openAgencyEdit()">Edit Profile</button>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-box"><div id="statVehicles" class="stat-num">0</div><div class="stat-label">Vehicles</div></div>
+            <div class="stat-box"><div id="statDrivers" class="stat-num">0</div><div class="stat-label">Drivers</div></div>
+        </div>
+
+        <div class="glass-card" id="alertsCard">
+            <h4 style="margin-top:0; color:#cbd5e1;">Recent Alerts</h4>
+            <div id="alertsList" style="max-height: 200px; overflow-y: auto;"></div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="glass-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <h3 style="margin:0"><i class="fas fa-satellite-dish"></i> Live Box Feed</h3>
+                
+                <div style="font-size:0.9rem; color:#000000df; font-weight:bold;">● Receiving Data</div>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; text-align:center;">
+                <div style="background:rgba(0,0,0,0.3); padding:10px; border-radius:8px;">
+                    <div style="font-size:0.7rem; color:#94a3b8;">SPEED</div>
+                    <div style="font-weight:bold; font-size:1.2rem; color:#f59e0b;"><span id="spd">0</span> km/h</div>
+                </div>
+                <div style="background:rgba(0,0,0,0.3); padding:10px; border-radius:8px;">
+                    <div style="font-size:0.7rem; color:#94a3b8;">LATITUDE</div>
+                    <div style="font-weight:bold; font-size:1.1rem; color:#fff;" id="lat">--.----</div>
+                </div>
+                <div style="background:rgba(0,0,0,0.3); padding:10px; border-radius:8px;">
+                    <div style="font-size:0.7rem; color:#94a3b8;">LONGITUDE</div>
+                    <div style="font-weight:bold; font-size:1.1rem; color:#fff;" id="lon">--.----</div>
+                </div>
+                <div><button class="btn-primary-map" onclick="openVehicleLiveById()">Track</button></div>
+            </div>
+        </div>
+
+        <div class="glass-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h3><i class="fas fa-bus"></i> Vehicle Registry</h3>
+                <div><button class="btn-primary-agency" onclick="openVehicleAdd()">+ Add Vehicle</button></div>
+            </div>
+            <div id="vehicleTabs" class="cat-tabs"></div>
+            <div id="vehicleList"></div>
+        </div>
+
+        <div class="glass-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h3><i class="fas fa-users"></i> Driver Registry</h3>
+                <button class="btn-primary-agency" onclick="openDriverAdd()">+ Add Driver</button>
+            </div>
+            <div id="driverList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="modalBack" class="modal-back">
+    <div id="vehicleModal" class="modal-content" style="display:none">
+        <h3 id="vehicleModalTitle">Vehicle Details</h3>
+        <form onsubmit="submitVehicleForm(event)">
+            <label>Vehicle Type</label>
+            <select id="fVType"><option value="Bus">Bus</option><option value="Taxi">Taxi</option><option value="Auto">Auto Rickshaw</option><option value="Van">Van / Shuttle</option><option value="Other">Other</option></select>
+            <label>Vehicle Name</label><input id="fVName" placeholder="e.g. City Express" required />
+            <label>Registration Number</label><input id="fVNum" placeholder="MH-01-AB-1234" required />
+            <label>Current Status</label><select id="fVStatus"><option>Available</option><option>On Trip</option><option>Maintenance</option></select>
+            <div style="text-align:right; margin-top:20px;"><button type="button" class="btn-action" onclick="closeModal()">Cancel</button> <button type="submit" class="btn-primary-agency">Save Vehicle</button></div>
+        </form>
+    </div>
+    <div id="driverModal" class="modal-content" style="display:none">
+        <h3 id="driverModalTitle">Driver Details</h3>
+        <form onsubmit="submitDriverForm(event)">
+            <label>Full Name</label><input id="fDName" required />
+            <label>License Number</label><input id="fDLicense" required />
+            <label>Phone Number</label><input id="fDPhone" required />
+            <label>Address</label><input id="fDAddress" />
+            <div style="text-align:right; margin-top:20px;"><button type="button" class="btn-action" onclick="closeModal()">Cancel</button> <button type="submit" class="btn-primary-agency">Save Driver</button></div>
+        </form>
+    </div>
+    <div id="agencyModal" class="modal-content" style="display:none">
+        <h3>Edit Profile</h3>
+        <form onsubmit="submitAgencyEditForm(event)">
+            <label>Agency Name</label> <input id="agName" required />
+            <label>Email</label> <input id="agEmail" />
+            <label>Phone</label> <input id="agPhone" />
+            <label>Address</label> <input id="agAddress" />
+            <div style="text-align:right;"><button type="button" class="btn-action" onclick="closeModal()">Cancel</button> <button type="submit" class="btn-primary-agency">Update Profile</button></div>
+        </form>
+    </div>
+  </div>
+
+  <script>
+    /* --- DATA KEYS --- */
+    const VKEY = 'ta_vehicles_v2';
+    const DKEY = 'ta_drivers_v2';
+    const ALERTS = 'ss_alerts';
+    const AGENCIES = 'ss_agencies';
+    const CURRENT_AGENCY = 'ss_current_agency';
+
+    /* --- HELPERS --- */
+    function read(k, def){ try{ return JSON.parse(localStorage.getItem(k)||'null') || def }catch{return def} }
+    function write(k,v){ localStorage.setItem(k, JSON.stringify(v)) }
+    function uid(){ return 'id_' + Math.random().toString(36).substr(2,9); }
+
+    let currentVehCategory = 'All'; 
+
+    /* --- INIT --- */
+    function init(){
+        if(read(VKEY, []).length === 0){
+            write(VKEY, [{id:uid(), agencyId:null, type:'Bus', name:'Star Line', number:'MP07-1234', status:'Available'}, {id:uid(), agencyId:null, type:'Taxi', name:'Swift Dzire', number:'MP07-9988', status:'On Trip'}]);
+        }
+        renderAgencyInfo();
+        renderVehicles();
+        renderDrivers();
+        renderAlerts();
+
+        /* --- AUTO-REFRESH / LIVE SYNC --- */
+    // This listens for changes made in other tabs (Driver App, Passenger App)
+    window.addEventListener('storage', function(e) {
+        console.log("Data changed in another tab, refreshing UI...");
+        
+        // Re-load all data and update the screen instantly
+        renderAgencyInfo();
+        renderVehicles();
+        renderDrivers();
+        renderAlerts(); 
+    });
+
+    // Backup: Force a UI refresh every 3 seconds just in case
+    setInterval(() => {
+        renderVehicles();
+        renderDrivers();
+    }, 3000);
+    }
+
+    /* ==================================================
+       UPDATED ALERTS SYSTEM (Persistent Dismissal)
+       ================================================== */
+    function renderAlerts(){
+        const alerts = read(ALERTS, []).slice(0, 5); 
+        const container = document.getElementById('alertsList');
+        const card = document.getElementById('alertsCard');
+        
+        container.innerHTML = '';
+        
+        // 1. Check if list is empty
+        if(alerts.length === 0){
+            container.innerHTML = '<div class="muted-text">No recent alerts.</div>';
+            if(card) card.classList.remove('alert-critical');
+            return;
+        }
+
+        const topAlert = alerts[0];
+        
+        // 2. Logic: Is the latest alert Critical AND Not Acknowledged?
+        const isCritical = topAlert.msg.includes('SOS') || topAlert.msg.includes('DISCONNECTED');
+        const isActive = isCritical && !topAlert.acknowledged; // Check stored status
+
+        // 3. Handle Visuals & Sound
+        if(isActive){
+            if(card && !card.classList.contains('alert-critical')){
+                card.classList.add('alert-critical');
+                playAlertSound(); 
+            }
+        } else {
+            // Stop effects if acknowledged
+            if(card) {
+                card.classList.remove('alert-critical');
+                card.classList.remove('shake-reminder');
+            }
+        }
+
+        // 4. Render List
+        alerts.forEach(a => {
+            const div = document.createElement('div');
+            div.style.padding = '10px';
+            div.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+            
+            // Determine Button State
+            let actionBtn = '';
+            
+            // If this is the specific alert causing the alarm
+            if(a.id === topAlert.id && isActive){
+                actionBtn = `<button onclick="stopAlert('${a.id}')" style="margin-top:8px; background:#ef4444; color:white; border:none; padding:8px 12px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:0.8rem; box-shadow:0 0 10px rgba(0,0,0,0.3); animation: shake 1s infinite; width:100%;">
+                                <i class="fas fa-volume-mute"></i> DISMISS ALARM
+                             </button>`;
+            } 
+            // If it was already acknowledged/dismissed
+            else if (a.acknowledged) {
+                actionBtn = `<div style="margin-top:5px; font-size:0.75rem; color:#10b981; font-weight:bold; border:1px solid #10b981; display:inline-block; padding:2px 8px; border-radius:4px;">
+                                <i class="fas fa-check-circle"></i> Resolved
+                             </div>`;
+            }
+
+            div.innerHTML = `
+                <div style="color:${(isCritical && !a.acknowledged) ? '#ef4444' : 'white'}; font-weight:bold; font-size:0.9rem;">
+                    <i class="fas fa-exclamation-circle"></i> ${a.msg}
+                </div>
+                <div class="muted-text" style="font-size:0.75rem;">${new Date(a.ts).toLocaleTimeString()} • ${a.vehicle || 'Unknown'}</div>
+                ${actionBtn}
+            `;
+            container.appendChild(div);
+        });
+        
+        // Add a "Clear All" button at the bottom if there are alerts
+        if(alerts.length > 0){
+             const clearBtn = document.createElement('div');
+             clearBtn.innerHTML = `<button onclick="clearAllAlerts()" style="width:100%; margin-top:10px; background:transparent; border:1px solid #444; color:#aaa; padding:5px; cursor:pointer; border-radius:5px;">Clear History</button>`;
+             container.appendChild(clearBtn);
+        }
+    }
+
+    // --- STOP ALERT FUNCTION (Saves to Database) ---
+    function stopAlert(id) {
+        stopAudio(); // Stop sound immediately
+        
+        // 1. Get current list
+        const alerts = read(ALERTS, []);
+        
+        // 2. Find the alert and mark as acknowledged
+        const targetAlert = alerts.find(a => a.id === id);
+        if(targetAlert){
+            targetAlert.acknowledged = true;
+            write(ALERTS, alerts); // Save back to LocalStorage
+        }
+
+        // 3. Re-render to update UI (Green checkmark)
+        renderAlerts();
+    }
+
+    function clearAllAlerts(){
+        if(confirm('Clear all alert history?')){
+            write(ALERTS, []);
+            stopAudio();
+            renderAlerts();
+        }
+    }
+
+    // --- 1-MINUTE REMINDER LOGIC ---
+    setInterval(() => {
+        const alerts = read(ALERTS, []);
+        const card = document.getElementById('alertsCard');
+        
+        if(alerts.length > 0 && card){
+            const topAlert = alerts[0];
+            // Only remind if NOT acknowledged
+            if(!topAlert.acknowledged) {
+                card.classList.add('shake-reminder');
+                playAlertSound(); 
+                setTimeout(() => { card.classList.remove('shake-reminder'); }, 1000);
+            }
+        }
+    }, 60000); 
+
+    /* ================================================== */
+
+    /* --- STANDARD RENDER FUNCTIONS --- */
+    function renderAgencyInfo(){
+        let ta = read(CURRENT_AGENCY, null);
+        if(!ta){ ta = { id:'demo_ta', name:'Smart Travels', email:'admin@smart.com', address:'Gwalior, India', phone:'9876543210' }; write(CURRENT_AGENCY, ta); }
+        document.getElementById('taName').innerText = ta.name;
+        document.getElementById('taId').innerText = 'ID: ' + ta.id;
+        document.getElementById('taEmail').innerText = ta.email || '-';
+        document.getElementById('taAddress').innerText = ta.address || '-';
+        const allV = read(VKEY, []).filter(v => !v.agencyId || v.agencyId === ta.id);
+        const allD = read(DKEY, []).filter(d => !d.agencyId || d.agencyId === ta.id);
+        document.getElementById('statVehicles').innerText = allV.length;
+        document.getElementById('statDrivers').innerText = allD.length;
+    }
+
+    function renderVehicles(){
+        const ta = read(CURRENT_AGENCY, null);
+        const allList = read(VKEY, []);
+        const agencyList = allList.filter(v => !v.agencyId || (ta && v.agencyId === ta.id));
+        const categories = ['All', ...new Set(agencyList.map(v => v.type))];
+        const tabContainer = document.getElementById('vehicleTabs');
+        tabContainer.innerHTML = '';
+        if(categories.length > 2) { 
+            categories.forEach(cat => {
+                const tab = document.createElement('div');
+                tab.className = `cat-tab ${cat === currentVehCategory ? 'active' : ''}`;
+                tab.innerText = cat;
+                tab.onclick = () => { currentVehCategory = cat; renderVehicles(); };
+                tabContainer.appendChild(tab);
+            });
+        } else { currentVehCategory = 'All'; }
+        const listToRender = currentVehCategory === 'All' ? agencyList : agencyList.filter(v => v.type === currentVehCategory);
+        const listContainer = document.getElementById('vehicleList');
+        listContainer.innerHTML = '';
+        if(listToRender.length === 0){ listContainer.innerHTML = '<div class="muted-text" style="text-align:center; padding:10px;">No vehicles found.</div>'; return; }
+        listToRender.forEach(v => {
+            let icon = 'fa-car'; if(v.type === 'Bus') icon = 'fa-bus'; if(v.type === 'Taxi') icon = 'fa-taxi'; if(v.type === 'Auto') icon = 'fa-shuttle-van';
+            let statusColor = '#10b981'; if(v.status === 'On Trip') statusColor = '#f59e0b'; if(v.status === 'Maintenance') statusColor = '#ef4444';
+            const div = document.createElement('div'); div.className = 'list-item';
+            div.innerHTML = `<div style="display:flex; align-items:center; gap:15px;"><div style="font-size:1.5rem; color:#cbd5e1; width:40px; text-align:center;"><i class="fas ${icon}"></i></div><div><div style="font-weight:bold; color:white;">${v.name}</div><div class="muted-text">${v.number} • ${v.type}</div></div></div><div style="text-align:right;"><div style="font-size:0.8rem; margin-bottom:5px; color:${statusColor}">● ${v.status}</div><button class="btn-action" onclick="editVehicle('${v.id}')">Edit</button> <button class="btn-action" onclick="openVehicleLiveById('${v.number}')">Track</button></div>`;
+            listContainer.appendChild(div);
+        });
+    }
+
+    function renderDrivers(){
+        const ta = read(CURRENT_AGENCY, null);
+        const list = read(DKEY, []).filter(d => !d.agencyId || (ta && d.agencyId === ta.id));
+        const container = document.getElementById('driverList'); container.innerHTML = '';
+        if(list.length === 0){ container.innerHTML = '<div class="muted-text" style="text-align:center;">No drivers registered.</div>'; return; }
+        list.forEach(d => {
+            const div = document.createElement('div'); div.className = 'list-item';
+            div.innerHTML = `<div><div style="font-weight:bold; color:white;">${d.name}</div><div class="muted-text">${d.phone} • ${d.license}</div></div><button class="btn-action" onclick="editDriver('${d.id}')">Edit</button>`;
+            container.appendChild(div);
+        });
+    }
+
+    /* ==============================================
+       FIREBASE INTEGRATION (Replace Keys Here)
+       ============================================== */
+    const firebaseConfig = {
+    apiKey: "YOUR_API_KEY", // Keep your existing API Key
+    authDomain: "safar-hackathon.firebaseapp.com",
+    // 👇 THIS IS THE CORRECT URL FOR THE WEBSITE 👇
+    databaseURL: "https://safar-hackathon-default-rtdb.asia-southeast1.firebasedatabase.app", 
+    projectId: "safar-hackathon",
+    storageBucket: "safar-hackathon.appspot.com",
+    messagingSenderId: "...",
+    appId: "..."
+};
+
+    try {
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const deviceId = "BOX_001"; 
+
+        db.ref('devices/' + deviceId).on('value', (snapshot) => {
+            const data = snapshot.val();
+            if(data) {
+                if(document.getElementById('lat')) document.getElementById('lat').innerText = data.lat.toFixed(5);
+                if(document.getElementById('lon')) document.getElementById('lon').innerText = data.lon.toFixed(5);
+                if(document.getElementById('spd')) document.getElementById('spd').innerText = data.speed;
+
+                // Handle SOS
+                if(data.sos === true || data.sos === "true") {
+                    const alerts = read(ALERTS, []);
+                    const lastAlert = alerts[0];
+                    // Create new alert only if it's new (debounce 10s)
+                    const isNew = !lastAlert || lastAlert.msg !== "HARDWARE SOS BUTTON PRESSED" || (Date.now() - new Date(lastAlert.ts).getTime() > 10000);
+
+                    if(isNew) {
+                        const newAlert = {
+                            id: 'H_' + Date.now(),
+                            ts: new Date().toISOString(),
+                            msg: "HARDWARE SOS BUTTON PRESSED",
+                            vehicle: "MH-01-HW-BOX",
+                            role: "driver",
+                            acknowledged: false // Start un-acknowledged
+                        };
+                        alerts.unshift(newAlert);
+                        write(ALERTS, alerts);
+                        renderAlerts(); 
+                    }
+                }
+
+                // Handle Disconnect
+                if(data.paired === false || data.paired === "false") {
+                    const alerts = read(ALERTS, []);
+                    const lastAlert = alerts[0];
+                    const isNew = !lastAlert || !lastAlert.msg.includes("DRIVER DISCONNECTED") || (Date.now() - new Date(lastAlert.ts).getTime() > 10000);
+
+                    if(isNew) {
+                        const newAlert = {
+                            id: 'D_' + Date.now(),
+                            ts: new Date().toISOString(),
+                            msg: "⚠️ DRIVER DISCONNECTED (Bluetooth Lost)",
+                            vehicle: "MH-01-HW-BOX",
+                            role: "driver",
+                            acknowledged: false
+                        };
+                        alerts.unshift(newAlert);
+                        write(ALERTS, alerts);
+                        renderAlerts(); 
+                    }
+                }
+            }
+        });
+    } catch (e) {
+        console.log("Firebase not configured (Demo mode)");
+    }
+
+    /* --- MODALS & UTILS --- */
+    function closeModal(){ document.getElementById('modalBack').style.display='none'; }
+    function openModal(id){ document.getElementById('modalBack').style.display='flex'; document.querySelectorAll('.modal-content').forEach(d=>d.style.display='none'); document.getElementById(id).style.display='block'; }
+    let editingId = null;
+    function openVehicleAdd(){ editingId=null; document.getElementById('fVName').value=''; document.getElementById('fVNum').value=''; openModal('vehicleModal'); }
+    function editVehicle(id){ editingId = id; const v = read(VKEY, []).find(x=>x.id===id); if(!v) return; document.getElementById('fVType').value = v.type; document.getElementById('fVName').value = v.name; document.getElementById('fVNum').value = v.number; document.getElementById('fVStatus').value = v.status; openModal('vehicleModal'); }
+    function submitVehicleForm(e){ e.preventDefault(); const list = read(VKEY, []); const ta = read(CURRENT_AGENCY, null); const newData = { id: editingId || uid(), agencyId: ta ? ta.id : null, type: document.getElementById('fVType').value, name: document.getElementById('fVName').value, number: document.getElementById('fVNum').value, status: document.getElementById('fVStatus').value }; if(editingId){ const idx = list.findIndex(x=>x.id===editingId); if(idx > -1) list[idx] = newData; } else { list.push(newData); } write(VKEY, list); closeModal(); renderVehicles(); renderAgencyInfo(); }
+    function openDriverAdd(){ editingId=null; document.getElementById('fDName').value=''; document.getElementById('fDPhone').value=''; openModal('driverModal'); }
+    function editDriver(id){ editingId = id; const d = read(DKEY, []).find(x=>x.id===id); if(!d) return; document.getElementById('fDName').value = d.name; document.getElementById('fDLicense').value = d.license; document.getElementById('fDPhone').value = d.phone; document.getElementById('fDAddress').value = d.address; openModal('driverModal'); }
+    function submitDriverForm(e){ e.preventDefault(); const list = read(DKEY, []); const ta = read(CURRENT_AGENCY, null); const newData = { id: editingId || uid(), agencyId: ta ? ta.id : null, name: document.getElementById('fDName').value, license: document.getElementById('fDLicense').value, phone: document.getElementById('fDPhone').value, address: document.getElementById('fDAddress').value }; if(editingId){ const idx = list.findIndex(x=>x.id===editingId); if(idx > -1) list[idx] = newData; } else { list.push(newData); } write(DKEY, list); closeModal(); renderDrivers(); renderAgencyInfo(); }
+    function openAgencyEdit(){ const ta = read(CURRENT_AGENCY, {}); document.getElementById('agName').value = ta.name; document.getElementById('agEmail').value = ta.email; document.getElementById('agPhone').value = ta.phone; document.getElementById('agAddress').value = ta.address; openModal('agencyModal'); }
+    function submitAgencyEditForm(e){ e.preventDefault(); let ta = read(CURRENT_AGENCY, {}); ta.name = document.getElementById('agName').value; ta.email = document.getElementById('agEmail').value; ta.phone = document.getElementById('agPhone').value; ta.address = document.getElementById('agAddress').value; write(CURRENT_AGENCY, ta); const agencies = read(AGENCIES, {}); if(ta.id) agencies[ta.id] = ta; write(AGENCIES, agencies); closeModal(); renderAgencyInfo(); }
+    function openVehicleLiveById(vnum){ window.open(`vehicle_maps.html?vnum=${encodeURIComponent(vnum)}`, '_blank'); }
+    function logoutAgency(){ localStorage.removeItem(CURRENT_AGENCY); window.location = 'Agency.html'; }
+    document.getElementById('modalBack').addEventListener('click', (e)=>{ if(e.target.id === 'modalBack') closeModal(); });
+
+    init();
+  </script>
+</body>
+</html>
